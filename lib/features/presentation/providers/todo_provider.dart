@@ -1,14 +1,53 @@
-import 'package:clean_arch_app/features/domain/usercases/add_todo_usecase.dart';
+
 import 'package:flutter/material.dart';
 
-class TodoProvider extends ChangeNotifier{
-  List<String> _todoList = [];
-  List<String> get todoList => _todoList;
+import '../../domain/entities/todo.dart';
+import '../../domain/usecases/add_todo_usecase.dart';
+import '../../domain/usecases/delete_todo_usecase.dart';
+import '../../domain/usecases/get_todo_usecase.dart';
+import '../../domain/usecases/update_todo_usecase.dart';
 
+class TodoProvider extends ChangeNotifier {
+  final GetTodoList getTodoList;
+  final AddTodo addTodo;
+  final DeleteTodo deleteTodo;
+  final UpdateTodoStatus updateTodoStatus;
 
+  List<Todo> _todos = [];
 
-  void removeTodoItem(String item){
-    _todoList.remove(item);
+  TodoProvider({
+    required this.getTodoList,
+    required this.addTodo,
+    required this.deleteTodo,
+    required this.updateTodoStatus,
+  }) {
+    fetchTodos();
+  }
+
+  List<Todo> get todos => _todos;
+
+  Future<void> fetchTodos() async {
+    _todos = await getTodoList();
     notifyListeners();
+  }
+
+  Future<void> addNewTodo(String text) async {
+    final newTodo = Todo(
+      id: DateTime.now().toString(),
+      text: text,
+      completed: false,
+    );
+    await addTodo(newTodo);
+    await fetchTodos();
+  }
+
+  Future<void> removeTodo(String todoId) async {
+    await deleteTodo(todoId);
+    await fetchTodos();
+  }
+
+  Future<void> toggleTodoStatus(String todoId, bool isCompleted) async {
+    await updateTodoStatus(todoId, isCompleted);
+    await fetchTodos();
   }
 }
